@@ -7,8 +7,7 @@ export default function NumberList(props) {
             {
                 names.map(k => (
                     <div key={k}>{k}</div>
-                )
-                )
+                ))
             }
         </div>
     )

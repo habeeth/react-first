@@ -1,20 +1,54 @@
 import axios from 'axios';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import NumberList from './NumberList';
+import Pagination from './Pagination';
 
 function App() {
-  const [name, setName] = useState([])
-  axios.get('https://pokeapi.co/api/v2/pokemon')
-  .then(nam => {
-    console.log(nam.data);
-    setName(nam.data.results.map(i => { return i.name }))
-  })
+  const [name, setName] = useState([]);
+  const [currentPageUrl, setcurrentPageUrl] = useState('https://pokeapi.co/api/v2/pokemon')
+  const [previousPagrUrl, setpreviousPageUrl] = useState();
+  const [nextPageUrl, setnextPageUrl] = useState();
+  const [loading, setloading] = useState(true);
+
+  useEffect(() => {
+    setloading(true);
+    let cancel;
+    axios.get(currentPageUrl, {
+      cancelToken: new axios.CancelToken(c => cancel = c)
+    })
+      .then(res => {
+        console.log("res.data.", res.data);
+        setloading(false);
+        setpreviousPageUrl(res.data.previous);
+        setnextPageUrl(res.data.next);
+        setName(res.data.results.map(i => { return i.name }))
+      })
+    return () => {
+      cancel()
+    }
+  }, [currentPageUrl]);
+
+  if (loading) return "Loading...";
+
+  function gotoNextPage() {
+    setcurrentPageUrl(nextPageUrl)
+  }
+
+  function gotoPrevPage() {
+    setcurrentPageUrl(previousPagrUrl)
+  }
 
   return (
-    <div className="App">
-      <NumberList namess={name}></NumberList>
-    </div>
+    <>
+      <NumberList namess={name} />
+      <Pagination
+        gotoNextPage={nextPageUrl ? gotoNextPage : null}
+        gotoPrevPage={previousPagrUrl ? gotoPrevPage : null}
+      />
+    </>
   );
 }
+
+
 
 export default App;
